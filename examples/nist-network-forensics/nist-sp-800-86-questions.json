@@ -1,0 +1,44 @@
+{
+  "questions": [
+    {
+      "id": "forensic-process",
+      "question": "What four basic steps does NIST SP 800-86 give for performing computer and network forensics?"
+    },
+    {
+      "id": "data-source-categories",
+      "question": "Which four data source categories are discussed in Sections 4 through 7?"
+    },
+    {
+      "id": "centralized-logging",
+      "question": "Why does the guide recommend forwarding logs to secure central log servers?"
+    },
+    {
+      "id": "chain-of-custody",
+      "question": "What information should be logged to maintain a chain of custody for digital evidence?"
+    },
+    {
+      "id": "slack-space",
+      "question": "What is file slack space, and what kind of data might it contain?"
+    },
+    {
+      "id": "volatile-os-data",
+      "question": "What should analysts weigh when deciding whether to collect volatile operating system data?"
+    },
+    {
+      "id": "tcp-ip-layers",
+      "question": "What are the four TCP/IP layers listed from highest to lowest in the network forensics section?"
+    },
+    {
+      "id": "sem-vs-nfat",
+      "question": "How does the guide distinguish SEM software from network forensic analysis tools (NFAT)?"
+    },
+    {
+      "id": "original-logs",
+      "question": "Why should analysts retain original logs when SEM products normalize log data?"
+    },
+    {
+      "id": "specific-incident",
+      "question": "What was the hostname of the compromised server in the specific incident investigated by NIST in this guide?"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "questions": [
+    {"id": "cloud", "question": "Which cloud provider hosts the service?"},
+    {"id": "notice", "question": "When are clients notified after a confirmed security incident?"},
+    {"id": "backup", "question": "Where is the backup data center located?"}
+  ]
+}

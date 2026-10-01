@@ -1,0 +1,111 @@
+{
+  "organization": "Northstar Network Operations Center (fictional test data)",
+  "reporting_window": "June 1 through September 15, 2026",
+  "incidents": [
+    {
+      "incident_id": "NOC-2026-017",
+      "severity": "SEV-1",
+      "started_utc": "2026-06-14 09:12 UTC",
+      "resolved_utc": "2026-06-14 10:05 UTC",
+      "service": "Edge API in us-central1",
+      "detection": "The API 5xx-rate alert paged the primary NOC engineer at 09:15 UTC.",
+      "customer_impact": "Approximately 28 percent of Edge API requests returned HTTP 502 during the incident.",
+      "root_cause": "A gateway route introduced by a deployment pointed traffic to an unavailable upstream pool.",
+      "mitigation": "The network engineer rolled back the route at 09:41 UTC; all request paths recovered by 10:05 UTC.",
+      "follow_up": "Add route validation to pre-deployment checks and require a canary for gateway changes.",
+      "owner": "Network SRE"
+    },
+    {
+      "incident_id": "NOC-2026-021",
+      "severity": "SEV-2",
+      "started_utc": "2026-07-03 14:20 UTC",
+      "resolved_utc": "2026-07-03 15:10 UTC",
+      "service": "EU webhook delivery",
+      "detection": "Transit packet-loss monitoring alerted at 14:24 UTC.",
+      "customer_impact": "Webhook deliveries in the EU region were delayed by up to 12 minutes; no events were lost.",
+      "root_cause": "A border gateway protocol (BGP) flap at the primary transit provider caused intermittent packet loss.",
+      "mitigation": "NOC shifted EU egress to the secondary transit provider and monitored delivery queues until clear.",
+      "follow_up": "Reduce the failover trigger from ten minutes to five minutes of sustained packet loss.",
+      "owner": "NOC on-call"
+    },
+    {
+      "incident_id": "NOC-2026-026",
+      "severity": "SEV-2",
+      "started_utc": "2026-07-17 02:00 UTC",
+      "resolved_utc": "2026-07-17 02:35 UTC",
+      "service": "Metrics ingestion",
+      "detection": "The ingestion queue-depth alert triggered at 02:07 UTC.",
+      "customer_impact": "Operational dashboards showed metrics up to 35 minutes late; customer request traffic was unaffected.",
+      "root_cause": "Storage saturation followed a telemetry exporter backlog after a scheduled maintenance job.",
+      "mitigation": "The team added storage capacity and replayed queued telemetry after the exporter recovered.",
+      "follow_up": "Set a capacity alert at 70 percent utilization and cap exporter retry concurrency.",
+      "owner": "Observability SRE"
+    },
+    {
+      "incident_id": "NOC-2026-031",
+      "severity": "SEV-1",
+      "started_utc": "2026-08-04 18:45 UTC",
+      "resolved_utc": "2026-08-04 19:20 UTC",
+      "service": "Authentication API",
+      "detection": "Login-error monitoring paged the primary NOC engineer at 18:48 UTC.",
+      "customer_impact": "Approximately 40 percent of new login attempts failed while existing sessions stayed active.",
+      "root_cause": "An internal mutual-TLS certificate expired before the automated rotation job completed.",
+      "mitigation": "Platform SRE rotated the certificate and restarted the affected authentication proxy.",
+      "follow_up": "Alert on certificate expiry 30 days in advance and add a rotation-job health check.",
+      "owner": "Platform SRE"
+    },
+    {
+      "incident_id": "NOC-2026-037",
+      "severity": "SEV-2",
+      "started_utc": "2026-08-26 07:10 UTC",
+      "resolved_utc": "2026-08-26 07:52 UTC",
+      "service": "APAC DNS resolution",
+      "detection": "Regional DNS failure monitoring alerted at 07:14 UTC.",
+      "customer_impact": "About seven percent of APAC requests failed to resolve during the incident.",
+      "root_cause": "A resolver retained a stale cache entry after a DNS zone update.",
+      "mitigation": "NOC flushed the affected resolver cache and lowered the record time-to-live value.",
+      "follow_up": "Add a resolver-cache consistency check after every production zone change.",
+      "owner": "Network SRE"
+    },
+    {
+      "incident_id": "NOC-2026-042",
+      "severity": "SEV-2",
+      "started_utc": "2026-09-11 23:00 UTC",
+      "resolved_utc": "2026-09-11 23:40 UTC",
+      "service": "Read-only analytics views",
+      "detection": "Database replica-lag monitoring triggered at 23:06 UTC.",
+      "customer_impact": "Analytics views lagged by up to 18 minutes; no data was lost.",
+      "root_cause": "A batch job overloaded the read replica and delayed replication.",
+      "mitigation": "The team paused the batch job and added read-replica capacity until lag returned to normal.",
+      "follow_up": "Move the batch job outside peak hours and add a replica-load budget.",
+      "owner": "Database SRE"
+    }
+  ],
+  "runbooks": {
+    "alert_triage": {
+      "primary_contact": "The NOC on-call engineer acknowledges SEV-1 pages within five minutes and SEV-2 pages within 15 minutes.",
+      "escalation": "If a SEV-1 incident remains unresolved after 15 minutes, the NOC engineer pages the Incident Commander and the relevant SRE owner.",
+      "security_routing": "A suspected data breach is escalated to the Security Officer immediately."
+    },
+    "monitoring_thresholds": {
+      "api_errors": "Page when the Edge API HTTP 5xx rate exceeds five percent for ten consecutive minutes.",
+      "packet_loss": "Page when network packet loss exceeds two percent for five consecutive minutes.",
+      "latency": "Warn when API p95 latency exceeds 800 milliseconds for ten consecutive minutes."
+    },
+    "communications": {
+      "initial_update": "For a SEV-1 customer-impacting incident, publish the first status-page update within 20 minutes of declaration.",
+      "recurring_update": "Update the status page at least every 30 minutes until the incident is resolved.",
+      "postmortem": "Publish an internal postmortem within five business days of a SEV-1 incident."
+    },
+    "planned_maintenance": {
+      "window": "The normal maintenance window is Sunday from 02:00 to 04:00 UTC.",
+      "notice": "Notify affected customers at least 48 hours before planned maintenance.",
+      "approval": "The Change Manager approves planned network changes before work begins."
+    },
+    "emergency_changes": {
+      "approval": "The Incident Commander approves emergency network changes during an active incident.",
+      "review": "Emergency network changes receive a retrospective review within two business days.",
+      "rollback": "The incident ticket records the rollback plan and verification result."
+    }
+  }
+}

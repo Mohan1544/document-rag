@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Document RAG</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">Document RAG</p>
+        <h1>Document questions, answered with evidence.</h1>
+        <p class="lead">Upload a PDF or JSON source and a list of questions. Review each answer, ask a follow-up, then download your results.</p>
+      </div>
+      <a class="api-link" href="/docs">API docs <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <section class="panel" aria-labelledby="upload-title">
+      <div class="section-heading">
+        <span class="step">01</span>
+        <div>
+          <h2 id="upload-title">Choose your files</h2>
+          <p>The question file should be JSON. The source can be PDF or JSON.</p>
+        </div>
+      </div>
+      <form id="upload-form">
+        <div class="file-grid">
+          <label class="file-field">
+            <span class="field-label">Source document</span>
+            <input id="document-file" type="file" accept=".pdf,.json,application/pdf,application/json" required>
+            <span class="field-help">PDF or JSON · up to 10 MB</span>
+          </label>
+          <label class="file-field">
+            <span class="field-label">Questions</span>
+            <input id="questions-file" type="file" accept=".json,application/json" required>
+            <span class="field-help">A JSON list, or an object with a “questions” list</span>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="primary" id="answer-button" type="submit">Answer questions</button>
+          <span id="progress" class="progress" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+      <details class="example">
+        <summary>Show questions JSON example</summary>
+        <pre>{"questions": [
+  {"id": "q1", "question": "Which cloud provider is used?"},
+  {"id": "q2", "question": "What is the backup location?"}
+]}</pre>
+      </details>
+    </section>
+
+    <div id="error" class="error" role="alert" hidden></div>
+
+    <section class="panel results-panel" id="results-panel" aria-labelledby="results-title" hidden>
+      <div class="section-heading results-heading">
+        <span class="step">02</span>
+        <div>
+          <h2 id="results-title">Review answers</h2>
+          <p id="document-summary"></p>
+        </div>
+        <button id="export-button" class="secondary" type="button">Download Excel</button>
+      </div>
+      <div id="results" class="results"></div>
+      <form id="followup-form" class="followup-form">
+        <label for="followup-question">Ask another question about this source</label>
+        <div class="followup-row">
+          <input id="followup-question" type="text" maxlength="500" placeholder="Type a follow-up question…" required>
+          <button id="followup-button" class="primary" type="submit">Ask</button>
+        </div>
+      </form>
+    </section>
+
+    <footer>Answers are generated from retrieved passages. Check the cited source before relying on a result.</footer>
+  </main>
+</body>
+</html>

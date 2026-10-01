@@ -1,0 +1,60 @@
+{
+  "questions": [
+    {
+      "id": "audit-period",
+      "question": "What dates does the SOC 2 Type 2 report cover?"
+    },
+    {
+      "id": "scope",
+      "question": "Which Trust Services Criteria category is in scope for this report?"
+    },
+    {
+      "id": "cloud-provider",
+      "question": "Which cloud platform hosts the Nave application?"
+    },
+    {
+      "id": "encryption-at-rest",
+      "question": "How is Nave's stored data encrypted at rest?"
+    },
+    {
+      "id": "transport-encryption",
+      "question": "What minimum TLS version is used for user access to the application?"
+    },
+    {
+      "id": "security-incidents",
+      "question": "Were any security incidents reported during the audit period?"
+    },
+    {
+      "id": "backup",
+      "question": "How does Nave back up its database?"
+    },
+    {
+      "id": "access-removal",
+      "question": "How quickly must sensitive access rights be removed after the IT Manager is notified?"
+    },
+    {
+      "id": "data-classification",
+      "question": "What are Nave's three data classification levels?"
+    },
+    {
+      "id": "penetration-tests",
+      "question": "How often does Nave use a third party to penetration test the production environment?"
+    },
+    {
+      "id": "mfa",
+      "question": "Does authentication to systems require multi-factor authentication?"
+    },
+    {
+      "id": "incident-plan-testing",
+      "question": "How often is the incident response plan tested?"
+    },
+    {
+      "id": "subscription-price",
+      "question": "What is the exact monthly subscription price per user for Nave?"
+    },
+    {
+      "id": "backup-address",
+      "question": "What is the street address of the data center storing Nave's backups?"
+    }
+  ]
+}

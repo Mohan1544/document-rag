@@ -1,0 +1,10 @@
+{
+  "company": "ExampleCo (synthetic demonstration data)",
+  "infrastructure": {
+    "hosting_provider": "Google Cloud Platform (GCP)",
+    "primary_region": "us-central1"
+  },
+  "incident_response": {
+    "client_notification": "Clients are notified within 24 hours after a security incident affecting their data is confirmed."
+  }
+}

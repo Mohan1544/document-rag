@@ -1,0 +1,20 @@
+{
+  "questions": [
+    {"id": "route-incident", "question": "What caused incident NOC-2026-017 and how was it mitigated?"},
+    {"id": "edge-impact", "question": "What percentage of Edge API requests returned HTTP 502 during NOC-2026-017?"},
+    {"id": "eu-webhooks", "question": "Which incident delayed EU webhooks, and were any events lost?"},
+    {"id": "metrics", "question": "Did the metrics-ingestion incident affect customer request traffic?"},
+    {"id": "auth", "question": "What caused the Authentication API incident NOC-2026-031?"},
+    {"id": "dns", "question": "How did NOC mitigate the APAC DNS incident?"},
+    {"id": "replica", "question": "What was the maximum analytics-view lag during NOC-2026-042?"},
+    {"id": "sev1-ack", "question": "How quickly must the NOC on-call engineer acknowledge a SEV-1 page?"},
+    {"id": "escalation", "question": "When is the Incident Commander paged for an unresolved SEV-1 incident?"},
+    {"id": "packet-loss", "question": "What packet-loss threshold triggers a page?"},
+    {"id": "status-cadence", "question": "How often must the status page be updated during an incident?"},
+    {"id": "maintenance", "question": "What is the normal planned maintenance window?"},
+    {"id": "maintenance-notice", "question": "How much notice is given before planned maintenance?"},
+    {"id": "emergency-approval", "question": "Who approves emergency network changes during an incident?"},
+    {"id": "unknown-credit", "question": "How much service credit was paid for NOC-2026-017?"},
+    {"id": "unknown-address", "question": "What is the street address of the NOC operations center?"}
+  ]
+}

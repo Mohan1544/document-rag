@@ -1,0 +1,40 @@
+{
+  "questions": [
+    {
+      "id": "iscm-definition",
+      "question": "How does NIST SP 800-137 define information security continuous monitoring (ISCM)?"
+    },
+    {
+      "id": "risk-tiers",
+      "question": "What do Tiers 1, 2, and 3 represent in the ISCM approach?"
+    },
+    {
+      "id": "automation-limits",
+      "question": "Why does the guide say security automation still requires human involvement?"
+    },
+    {
+      "id": "monitoring-frequency",
+      "question": "What should system owners do if the organization-wide minimum monitoring frequency is not adequate for their information system?"
+    },
+    {
+      "id": "event-driven-assessment",
+      "question": "What kinds of events can trigger an event-driven security control assessment?"
+    },
+    {
+      "id": "tier-3-reporting",
+      "question": "What do Tier 3 officials report to officials at Tiers 1 and 2?"
+    },
+    {
+      "id": "automation-domains",
+      "question": "Which three security automation domains in Appendix D cover vulnerabilities, patches, and incidents?"
+    },
+    {
+      "id": "siem-functions",
+      "question": "According to Appendix D, what does an SIEM server do with audit records from different sources?"
+    },
+    {
+      "id": "company-audit-period",
+      "question": "What are the dates of Northstar Review Cloud's SOC 2 audit period?"
+    }
+  ]
+}
