@@ -1,12 +1,15 @@
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    OPENBLAS_NUM_THREADS=1
 
 WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY app ./app
-RUN pip install --no-cache-dir . && \
+COPY examples ./examples
+COPY evaluations ./evaluations
+RUN pip install --no-cache-dir . && pip check && \
     useradd --create-home --uid 10001 appuser
 
 USER appuser

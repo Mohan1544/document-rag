@@ -1,4 +1,6 @@
 .env
+.env.*
+!.env.example
 .venv/
 __pycache__/
 .pytest_cache/
@@ -6,3 +8,4 @@ __pycache__/
 *.egg-info/
 *.py[cod]
 *.xlsx
+evaluation-results/

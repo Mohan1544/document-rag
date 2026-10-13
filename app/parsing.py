@@ -20,14 +20,20 @@ def safe_filename(filename: str | None) -> str:
     return re.sub(r"[^\w.() -]", "_", name)[:120] or "document"
 
 
+def _reject_json_constant(value: str) -> None:
+    raise ValueError("Nonstandard JSON constant")
+
+
+def _load_json(data: bytes, code: str, message: str) -> Any:
+    try:
+        return json.loads(data.decode("utf-8-sig"), parse_constant=_reject_json_constant)
+    except (UnicodeDecodeError, ValueError, RecursionError) as exc:
+        raise ServiceError(422, code, message) from exc
+
+
 def parse_questions(data: bytes, settings: Settings) -> list[Question]:
     """Accept string or object questions and preserve caller IDs and order."""
-    try:
-        payload = json.loads(data.decode("utf-8-sig"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise ServiceError(
-            422, "invalid_questions_json", "Questions must be valid UTF-8 JSON."
-        ) from exc
+    payload = _load_json(data, "invalid_questions_json", "Questions must be valid UTF-8 JSON.")
 
     entries = payload.get("questions") if isinstance(payload, dict) else payload
     if not isinstance(entries, list) or not entries:
@@ -49,7 +55,7 @@ def parse_questions(data: bytes, settings: Settings) -> list[Question]:
             raise ServiceError(
                 422, "invalid_question", f"Question {number} must be text or an object."
             )
-        if not isinstance(question_id, (str, int)) or not str(question_id).strip():
+        if type(question_id) not in (str, int) or not str(question_id).strip():
             raise ServiceError(422, "invalid_question_id", f"Question {number} has an invalid id.")
         question_id = str(question_id).strip()
         if len(question_id) > 100:
@@ -178,10 +184,7 @@ def _json_records(value: Any, path: str = "$", depth: int = 0) -> Iterator[tuple
 
 def parse_json_document(data: bytes, filename: str, settings: Settings) -> list[Passage]:
     """Split JSON records while carrying their paths into citation metadata."""
-    try:
-        payload = json.loads(data.decode("utf-8-sig"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise ServiceError(422, "invalid_source_json", "Source must be valid UTF-8 JSON.") from exc
+    payload = _load_json(data, "invalid_source_json", "Source must be valid UTF-8 JSON.")
 
     passages: list[Passage] = []
     total_chars = 0

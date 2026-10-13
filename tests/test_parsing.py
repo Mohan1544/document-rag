@@ -2,6 +2,7 @@ import json
 from io import BytesIO
 
 import pytest
+from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 
 from app.config import Settings
@@ -26,6 +27,8 @@ def test_questions_accept_strings_and_objects_and_preserve_order() -> None:
         (b"{broken", "invalid_questions_json"),
         (b'{"questions": []}', "invalid_questions"),
         (b'{"questions": [""]}', "empty_question"),
+        (b'[{"id":true,"question":"Cloud?"}]', "invalid_question_id"),
+        (b"[NaN]", "invalid_questions_json"),
         (
             b'{"questions": [{"id":"x","question":"A"},{"id":"x","question":"B"}]}',
             "duplicate_question_id",
@@ -86,3 +89,35 @@ def test_pdf_page_limit(pdf_bytes: bytes) -> None:
     with pytest.raises(ServiceError) as error:
         parse_document(pdf_bytes, "report.pdf", Settings(max_pdf_pages=1))
     assert error.value.code == "too_many_pages"
+
+
+def test_encrypted_pdf_has_actionable_error(pdf_bytes: bytes) -> None:
+    writer = PdfWriter()
+    writer.append(PdfReader(BytesIO(pdf_bytes)))
+    writer.encrypt("password-for-test")
+    output = BytesIO()
+    writer.write(output)
+    with pytest.raises(ServiceError) as error:
+        parse_document(output.getvalue(), "encrypted.pdf", Settings())
+    assert error.value.status_code == 422
+    assert error.value.code == "encrypted_pdf"
+
+
+def test_excessive_question_count_is_rejected() -> None:
+    with pytest.raises(ServiceError) as error:
+        parse_questions(json.dumps(["Cloud?"] * 51).encode(), Settings())
+    assert error.value.code == "too_many_questions"
+
+
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+def test_source_json_rejects_nonstandard_constants(constant) -> None:
+    with pytest.raises(ServiceError) as error:
+        parse_document(f'{{"value":{constant}}}'.encode(), "source.json", Settings())
+    assert error.value.code == "invalid_source_json"
+
+
+def test_extremely_nested_json_returns_validation_error() -> None:
+    source = (("[" * 5000) + '"text"' + ("]" * 5000)).encode()
+    with pytest.raises(ServiceError) as error:
+        parse_document(source, "source.json", Settings())
+    assert error.value.code in {"invalid_source_json", "json_too_deep"}

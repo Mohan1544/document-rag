@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import threading
 from io import BytesIO
 
@@ -49,6 +50,8 @@ def test_endpoint_handles_multiple_questions_and_export(fake_provider: FakeProvi
         "confidence",
         "status",
         "citations",
+        "error_code",
+        "error_message",
     ]
     assert sheet[2][2].value == "Google Cloud Platform"
 
@@ -88,7 +91,7 @@ def test_export_escapes_spreadsheet_formulas(fake_provider: FakeProvider) -> Non
             {
                 "id": "1",
                 "question": '=HYPERLINK("bad")',
-                "answer": "No",
+                "answer": "Data-Not-Found",
                 "comments": "",
                 "confidence": "low",
                 "status": "not_found",
@@ -133,3 +136,150 @@ async def test_health_stays_responsive_during_slow_search(
         finally:
             release.set()
             await answer_task
+
+
+@pytest.mark.parametrize("source_name", ["source.json", "report.pdf"])
+def test_endpoint_returns_and_exports_partial_results(source_name, pdf_bytes) -> None:
+    from app.errors import ServiceError
+
+    class MixedProvider(FakeProvider):
+        async def answer(self, question, passages):
+            if question == "Fail?":
+                raise ServiceError(504, "model_timeout", "Answer service timed out.")
+            return await super().answer(question, passages)
+
+    document = pdf_bytes if source_name.endswith(".pdf") else b'{"provider":"GCP"}'
+    with TestClient(create_app(provider=MixedProvider())) as client:
+        response = client.post(
+            "/api/v1/answer",
+            files=_files(b'["Which cloud?", "Fail?", "Unknown backup?"]', document, source_name),
+        )
+        assert response.status_code == 200
+        results = response.json()["results"]
+        assert [result["status"] for result in results] == ["answered", "error", "not_found"]
+        assert results[1]["answer"] is None and results[1]["confidence"] is None
+        assert results[1]["error"]["code"] == "model_timeout"
+        exported = client.post("/api/v1/export.xlsx", json={"results": results})
+    assert exported.status_code == 200
+    sheet = load_workbook(BytesIO(exported.content), read_only=True).active
+    assert sheet[3][2].value is None
+    assert sheet[3][5].value == "error"
+    assert sheet[3][7].value == "model_timeout"
+
+
+def test_export_rejects_error_result_with_invented_answer() -> None:
+    payload = {
+        "results": [
+            {
+                "id": "1",
+                "question": "Cloud?",
+                "answer": "Invented",
+                "comments": "",
+                "confidence": "high",
+                "status": "error",
+                "citations": [],
+                "error": {"code": "model_timeout", "message": "Timed out"},
+            }
+        ]
+    }
+    with TestClient(create_app(provider=FakeProvider())) as client:
+        assert client.post("/api/v1/export.xlsx", json=payload).status_code == 422
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("source_name", ["source.json", "report.pdf"])
+async def test_full_endpoint_uses_langchain_with_mocked_openai(
+    mock_openai_provider, source_name, pdf_bytes
+) -> None:
+    calls = []
+
+    def respond(request):
+        body = json.loads(request.content)
+        calls.append((request.url.path, body))
+        if request.url.path.endswith("/embeddings"):
+            return httpx.Response(
+                200,
+                json={
+                    "object": "list",
+                    "model": "text-embedding-3-small",
+                    "data": [
+                        {
+                            "object": "embedding",
+                            "index": i,
+                            "embedding": [float("GCP" in text), 1.0],
+                        }
+                        for i, text in enumerate(body["input"])
+                    ],
+                    "usage": {"prompt_tokens": 5, "total_tokens": 5},
+                },
+            )
+        prompt = body["messages"][-1]["content"]
+        passage_id = next(
+            passage_id
+            for passage_id, text in re.findall(r"\[([^\]]+)\] ([^\n]+)", prompt)
+            if "GCP" in text
+        )
+        if "Fail?" in prompt:
+            # An upstream success containing no choices must become a question
+            # error, while the two other model responses survive in the same batch.
+            choices = []
+        else:
+            supported = "Unknown backup?" not in prompt
+            content = {
+                "answer": "GCP" if supported else "Data-Not-Found",
+                "comments": "Source checked.",
+                "citation_ids": [passage_id] if supported else [],
+                "is_answerable": supported,
+                "evidence_strength": "high" if supported else "low",
+                "evidence_quotes": [{"passage_id": passage_id, "quote": "GCP"}]
+                if supported
+                else [],
+            }
+            choices = [
+                {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {"role": "assistant", "content": json.dumps(content)},
+                }
+            ]
+        return httpx.Response(
+            200,
+            json={
+                "id": "chatcmpl-test",
+                "object": "chat.completion",
+                "created": 0,
+                "model": "gpt-4o-mini",
+                "choices": choices,
+            },
+        )
+
+    document = pdf_bytes if source_name.endswith(".pdf") else b'{"provider":"GCP"}'
+    async with (
+        mock_openai_provider(respond) as provider,
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=create_app(provider=provider)), base_url="http://test"
+        ) as client,
+    ):
+        response = await client.post(
+            "/api/v1/answer",
+            files=_files(b'["Which cloud?", "Fail?", "Unknown backup?"]', document, source_name),
+        )
+    assert response.status_code == 200
+    results = response.json()["results"]
+    assert [result["status"] for result in results] == ["answered", "error", "not_found"]
+    assert results[1]["error"]["code"] == "invalid_model_response"
+    citation = results[0]["citations"][0]
+    assert citation["source"] == source_name
+    if source_name.endswith(".pdf"):
+        assert citation["page"] == 2
+    else:
+        assert citation["json_path"] == "$"
+    assert len([call for call in calls if call[0].endswith("/chat/completions")]) == 3
+
+
+def test_invalid_source_json_never_reaches_embeddings(fake_provider) -> None:
+    with TestClient(create_app(provider=fake_provider)) as client:
+        response = client.post("/api/v1/answer", files=_files(b'["Cloud?"]', b'{"value":NaN}'))
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "invalid_source_json"
+    assert fake_provider.embedding_batches == []

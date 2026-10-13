@@ -1,6 +1,8 @@
 # Nave SOC 2 UI test
 
-Use the publisher-hosted [Nave SOC 2 Type 2 report](https://getnave.com/assets2/docs/Nave-SOC2-Type-2-Report.pdf) as the **Source document** and [`nave-soc2-questions.json`](nave-soc2-questions.json) as **Questions**. Download the PDF from the publisher's link in your browser; keep it local rather than adding a third-party report to the project. Automated downloads may receive a 403 response from the publisher.
+Use the [Nave SOC 2 Type 2 report](https://getnave.com/assets2/docs/Nave-SOC2-Type-2-Report.pdf) as the **Source document** and [`nave-soc2-questions.json`](nave-soc2-questions.json) as **Questions**. The linked PDF returned HTTP 404 during verification on October 13, 2026. Use a local copy and keep it outside Git; do not substitute the Type 1 report without creating new references.
+
+The table below is the existing reference checklist, **not live-model accuracy evidence**. Its page/phrase anchors must be checked against the actual local report. To collect cold/cached latency, usage, and live answers, use the Nave command under **Real PDF latency, token usage, and answer review** in the root README. Mark every generated answer Correct or Incorrect only after reviewing its source support.
 
 This is an 84-page report. The page numbers below refer to PDF pages as shown by the app, which start at 1. Answers may differ in wording, but they should match the facts and cite a relevant page. The last two questions are deliberate missing-data checks.
 

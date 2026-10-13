@@ -8,7 +8,17 @@ from openpyxl.utils import get_column_letter
 
 from app.schemas import AnswerResult
 
-HEADERS = ["id", "question", "answer", "comments", "confidence", "status", "citations"]
+HEADERS = [
+    "id",
+    "question",
+    "answer",
+    "comments",
+    "confidence",
+    "status",
+    "citations",
+    "error_code",
+    "error_message",
+]
 
 
 def _safe_cell(value: str) -> str:
@@ -37,16 +47,18 @@ def build_workbook(results: list[AnswerResult]) -> bytes:
             [
                 _safe_cell(result.id),
                 _safe_cell(result.question),
-                _safe_cell(result.answer),
+                _safe_cell(result.answer or ""),
                 _safe_cell(result.comments),
                 result.confidence,
                 result.status,
                 _safe_cell("; ".join(locations)),
+                _safe_cell(result.error.code if result.error else ""),
+                _safe_cell(result.error.message if result.error else ""),
             ]
         )
     sheet.freeze_panes = "A2"
     sheet.auto_filter.ref = sheet.dimensions
-    widths = [18, 55, 70, 70, 15, 17, 45]
+    widths = [18, 55, 70, 70, 15, 17, 45, 25, 55]
     for index, width in enumerate(widths, start=1):
         sheet.column_dimensions[get_column_letter(index)].width = width
     for cell in sheet[1]:

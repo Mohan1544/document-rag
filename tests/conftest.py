@@ -1,9 +1,14 @@
 from collections.abc import Iterator
+from contextlib import asynccontextmanager
 from io import BytesIO
 
+import httpx
 import pytest
+from openai import AsyncOpenAI
 from reportlab.pdfgen import canvas
 
+from app.config import Settings
+from app.llm import OpenAIProvider
 from app.schemas import DraftAnswer, Passage
 
 
@@ -55,6 +60,7 @@ class FakeProvider:
                     [match.id],
                     True,
                     "high",
+                    [{"passage_id": match.id, "quote": match.text[:350]}],
                 )
             return DraftAnswer("Data-Not-Found", "No matching evidence.", [], False, "low")
         finally:
@@ -64,3 +70,21 @@ class FakeProvider:
 @pytest.fixture
 def fake_provider() -> Iterator[FakeProvider]:
     yield FakeProvider()
+
+
+@pytest.fixture
+def mock_openai_provider(monkeypatch):
+    """Exercise the actual LangChain integrations using mocked HTTP, never a paid API."""
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+    @asynccontextmanager
+    async def factory(respond):
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as http_client:
+            client = AsyncOpenAI(api_key="test-key", http_client=http_client, max_retries=0)
+            provider = OpenAIProvider(Settings(), client=client)
+            try:
+                yield provider
+            finally:
+                await provider.aclose()
+
+    return factory

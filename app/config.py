@@ -14,8 +14,15 @@ class Settings:
     max_extracted_chars: int = 500_000
     max_chunks: int = 500
     max_concurrent_answers: int = 4
+    max_concurrent_embeddings: int = 3
+    max_active_requests: int = 4
+    max_index_builds: int = 2
+    blocking_workers: int = 4
+    index_timeout_seconds: int = 90
+    max_export_bytes: int = 3_000_000
     request_timeout_seconds: int = 120
     openai_timeout_seconds: int = 30
+    question_timeout_seconds: int = 60
     retrieval_top_k: int = 5
     chunk_size: int = 1_400
     chunk_overlap: int = 200
